@@ -25,13 +25,20 @@ def prihlasit(function):
 @app.route("/", methods=["GET"])
 @db_session
 def index():
-    shorcut = request.args.get("shorcut")
+    shorcut = request.args.get('shorcut')
     if shorcut and Addresses.get(shorcut=shorcut):
         # shorcut je v DB
         pass
     else:
-        shocut = None
+        shortcut = None
+    if 'nick' in session:
+        user = User.get(nick = session["nick"])
+        addresses = Addresses.select(lambda a: a.user == user)
+        for addr in addresses:
+            print()
     return render_template("base.html.j2", shorcut=shorcut)
+
+
 
 
 @app.route("/", methods=["POST"])
