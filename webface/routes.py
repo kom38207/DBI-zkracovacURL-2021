@@ -25,18 +25,17 @@ def prihlasit(function):
 @app.route("/", methods=["GET"])
 @db_session
 def index():
-    shorcut = request.args.get('shorcut')
-    if shorcut and Addresses.get(shorcut=shorcut):
-        # shorcut je v DB
+    shortcut = request.args.get('shortcut')
+    if shortcut and Addresses.get(shortcut=shortcut):
+      
         pass
     else:
         shortcut = None
     if 'nick' in session:
         user = User.get(nick = session["nick"])
         addresses = Addresses.select(lambda a: a.user == user)
-        for addr in addresses:
-            print()
-    return render_template("base.html.j2", shorcut=shorcut)
+        return render_template("base.html.j2", shortcut = shortcut, addresses = list(addresses))
+    return render_template("base.html.j2", shortcut=shortcut)
 
 
 
@@ -47,31 +46,31 @@ def index_post():
     url = request.form.get("url")
     if url:
         # vytvořím zkratku, která ještě neexistuje
-        shorcut = "".join([random.choice(string.ascii_letters) for i in range(7)])
+        shortcut = "".join([random.choice(string.ascii_letters) for i in range(7)])
         address = Addresses.get(
-            shorcut=shorcut
+            shortcut=shortcut
         )  # hledám jesli v DB náhodou takto zkratk až není
         while address is not None:
-            shorcut = "".join([random.choice(string.ascii_letters) for i in range(7)])
-            address = Addresses.get(shorcut=shorcut)
+            shortcut = "".join([random.choice(string.ascii_letters) for i in range(7)])
+            address = Addresses.get(shortcut=shortcut)
 
         # Přidávám záznam do tabulky Addresses
         if "nick" in session:
             address = Addresses(
-                url=url, shorcut=shorcut, user=User.get(nick=session["nick"])
+                url=url, shortcut=shortcut, user=User.get(nick=session["nick"])
             )
         else:
-            address = Addresses(url=url, shorcut=shorcut)
+            address = Addresses(url=url, shortcut=shortcut)
 
-        return redirect(url_for("index", shorcut=shorcut))
+        return redirect(url_for("index", shortcut=shortcut))
     else:
         return redirect(url_for("index"))
 
 
-@app.route("/<path:shorcut>/", methods=["GET"])
+@app.route("/<path:shortcut>/", methods=["GET"])
 @db_session
-def shorcut_get(shorcut):
-    if url := Addresses.get(shorcut=shorcut).url:
+def shortcut_get(shortcut):
+    if url := Addresses.get(shortcut=shortcut).url:
         return redirect(url)
     else:
         return redirect(url_for("index"))
@@ -134,6 +133,18 @@ def logout():
     session.pop("nick", None)
     return redirect(url_for("index"))
 
+@app.route("/remove", methods = ["POST"])
+@db_session
+def remove_post():
+    if 'nick' in session:
+        rmid = request.form.get("rmid")
+        user = User.get(nick = session["nick"])
+        #user = User.get(nick = "Ladislav")
+        addr = Addresses.get(id = rmid, user = user)
+        if addr:
+          addr.delete()
+        
+    return redirect(url_for("index"))
 
 @app.route("/text/")
 def text():

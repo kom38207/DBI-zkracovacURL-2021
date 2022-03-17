@@ -16,7 +16,7 @@ class User(db.Entity):
 class Addresses(db.Entity):
     id = PrimaryKey(int, auto=True)
     url = Required(str)
-    shorcut = Required(str, unique=True)
+    shortcut = Required(str, unique=True)
     user = Optional(User)
 
 db.generate_mapping(create_tables=True)
